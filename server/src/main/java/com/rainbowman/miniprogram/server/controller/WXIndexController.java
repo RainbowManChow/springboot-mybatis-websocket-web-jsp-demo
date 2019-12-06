@@ -38,6 +38,8 @@ package com.rainbowman.miniprogram.server.controller;
 
 
 import com.rainbowman.miniprogram.server.service.WXIndexService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +53,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/WXIndex")
 public class WXIndexController {
+    //springboot自带日志系统(slf4j+logback)引入starterweb 即可自动引入所需包
+    private static final Logger LOG = LoggerFactory.getLogger(WXIndexController.class);
 
     @Autowired
     private WXIndexService wXIndexService;
@@ -58,6 +62,7 @@ public class WXIndexController {
 
     @RequestMapping("/test")
     public List<Map<String,Object>> getDeviceAlarmData(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        LOG.error("进入test方法");
         List<Map<String,Object>> result= wXIndexService.getAll(new HashMap<>());
         System.out.println(result.toString());
         return result;

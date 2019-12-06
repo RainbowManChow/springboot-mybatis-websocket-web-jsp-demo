@@ -25,4 +25,11 @@ mybatis:
   type:
     alias:
       package: com.rainbowman.miniprogram.server.bean
+#log日志路径，springboot 默认 sl4j+LogBack
+logging:
+  file: D:/test/wxdemo.log
+  level:
+    root: info
+    com.rainbowman.miniprogram.server.mapper: debug
+
 
