@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,6 +62,7 @@ public class WXIndexController {
 
 
     @RequestMapping("/test")
+    @ResponseBody  //自动返回格式化json数据，springboot自带jackson包可自动化
     public List<Map<String,Object>> getDeviceAlarmData(HttpServletRequest request, HttpServletResponse response) throws Exception {
         LOG.error("进入test方法");
         List<Map<String,Object>> result= wXIndexService.getAll(new HashMap<>());
