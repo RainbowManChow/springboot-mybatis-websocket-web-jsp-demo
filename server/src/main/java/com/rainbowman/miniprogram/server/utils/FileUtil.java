@@ -31,17 +31,20 @@
 //
 //  @author a man is so handsome
 //  @花开堪折直须折 莫待无花空折枝
-//  @date 2019/12/5 0005 17:18
+//  @date 2019/12/10 0010 14:24
 // 
 
-package com.rainbowman.miniprogram.server.mapper;
+package com.rainbowman.miniprogram.server.utils;
 
-import java.util.List;
-import java.util.Map;
+public class FileUtil {
+    public static String getFileType(String filename) {
+        if (filename.endsWith(".jpg") || filename.endsWith(".jepg")) {
+            return ".jpg";
+        } else if (filename.endsWith(".png") || filename.endsWith(".PNG")) {
+            return ".png";
+        } else {
+            return "application/octet-stream";
+        }
 
-public interface WXIndexMapper {
-    List<Map<String, Object>> getAll(Map<String, Object> paramMap);
-    void insert(Map<String, Object> paramMap);
-    void insertInfo(Map<String, Object> paramMap);
-    List<Map<String, Object>> getAllInfo(Map<String, Object> paramMap);
+    }
 }

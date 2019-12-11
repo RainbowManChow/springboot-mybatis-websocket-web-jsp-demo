@@ -41,4 +41,7 @@ import java.util.Map;
 
 public interface WXIndexService {
     public List<Map<String, Object>> getAll(Map<String,Object> paramMap);
+    public void insert(Map<String,Object> paramMap);
+    public void insertInfo(Map<String, Object> paramMap);
+    public List<Map<String, Object>> getAllInfo(Map<String, Object> paramMap);
 }

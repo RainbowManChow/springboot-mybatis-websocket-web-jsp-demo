@@ -57,4 +57,21 @@ public class WXIndexServiceImpl implements WXIndexService {
     public List<Map<String, Object>> getAll(Map<String, Object> param) {
         return wXIndexMapper.getAll(param);
     }
+    @Master
+    @Override
+    public void insert(Map<String, Object> paramMap) {
+        wXIndexMapper.insert(paramMap);
+    }
+
+    @Master
+    @Override
+    public void insertInfo(Map<String, Object> paramMap) {
+        wXIndexMapper.insertInfo(paramMap);
+    }
+
+    @Master
+    @Override
+    public List<Map<String, Object>> getAllInfo(Map<String, Object> paramMap) {
+        return wXIndexMapper.getAllInfo(paramMap);
+    }
 }

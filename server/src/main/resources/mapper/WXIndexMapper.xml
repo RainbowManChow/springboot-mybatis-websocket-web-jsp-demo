@@ -7,6 +7,60 @@
         SELECT * from sys_user
     </select>
 
+    <insert id="insert" parameterType="Map">
+        insert into sys_user
+        (
+        nickName,
+        avatarUrl,
+        openId,
+        unionId,
+        gender,
+        city,
+        province,
+        country,
+        recentdate
+        )
+        VALUES
+           (
+		        #{nickName},
+				#{avatarUrl},
+			    #{openId},
+			    #{unionId},
+				#{gender},
+				#{city},
+				#{province},
+				#{country},
+				#{recentdate}
+			)
+    </insert>
+
+    <select id="getAllInfo" parameterType="Map" resultType="Map">
+        SELECT * from sys_information
+    </select>
+
+    <insert id="insertInfo" parameterType="Map">
+        insert into sys_information
+        (
+        openid,
+        description,
+        images,
+        latitude,
+        longitude,
+        iconpath
+        )
+        VALUES
+           (
+		        #{openid},
+				#{description},
+			    #{images},
+			    #{latitude},
+				#{longitude},
+				#{iconpath}
+			)
+    </insert>
+
+
+
 
 
 
