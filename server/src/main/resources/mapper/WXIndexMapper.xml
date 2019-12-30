@@ -46,7 +46,10 @@
         images,
         latitude,
         longitude,
-        iconpath
+        iconpath,
+        location,
+        title,
+        recentdate
         )
         VALUES
            (
@@ -55,7 +58,10 @@
 			    #{images},
 			    #{latitude},
 				#{longitude},
-				#{iconpath}
+				#{iconpath},
+				#{location},
+				#{title},
+				#{recentdate}
 			)
     </insert>
 

@@ -38,6 +38,7 @@ package com.rainbowman.miniprogram.server.controller;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPObject;
 import com.fasterxml.jackson.annotation.JsonAlias;
@@ -69,9 +70,10 @@ public class WXIndexController {
     //springboot自带日志系统(slf4j+logback)引入starterweb 即可自动引入所需包
     private static final Logger LOG = LoggerFactory.getLogger(WXIndexController.class);
     //小程序唯一标识   (在微信小程序管理后台获取)
-    private static final String wxspAppid = "wx1da383f6062172ae";
+    public static final String wxspAppid = "wx1da383f6062172ae";
     //小程序的 app secret (在微信小程序管理后台获取)
-    private static final String wxspSecret = "b4cbdf24d4af736fe5b12f79fdca144c";
+    public static final String wxspSecret = "b4cbdf24d4af736fe5b12f79fdca144c";
+    public static final String iconpath = "/images/point.png";
 
     @Autowired
     private WXIndexService wXIndexService;
@@ -282,7 +284,7 @@ public class WXIndexController {
 
     @ResponseBody
     @RequestMapping(value = "/saveInfo", method = RequestMethod.POST)
-    public Map saveInfo(HttpServletRequest request, HttpServletResponse response, String user_id, String content, String images, String latitude, String longitude) throws IOException {
+    public Map saveInfo(HttpServletRequest request, HttpServletResponse response, String user_id, String content, String images, String latitude, String longitude, String location, String title) throws IOException {
         Map<String, Object> paramMap = new HashMap<>();
         Map<String, Object> result = new HashMap<>();
         try {
@@ -291,7 +293,10 @@ public class WXIndexController {
             paramMap.put("images", images);
             paramMap.put("latitude", latitude);
             paramMap.put("longitude", longitude);
-            paramMap.put("iconpath", "");
+            paramMap.put("location", location);
+            paramMap.put("title", title);
+            paramMap.put("recentdate", new Date());
+            paramMap.put("iconpath", iconpath);
             wXIndexService.insertInfo(paramMap);
             System.out.println(user_id + "//" + content + "//" + images);
             result.put("status", "0");
@@ -305,10 +310,10 @@ public class WXIndexController {
     }
 
 
-    @RequestMapping("/getImages/{imageurl}")
-    public void getImages(HttpServletRequest request, HttpServletResponse response, @PathVariable("imageurl") String imageurl) throws Exception {
+    @RequestMapping("/getImages")
+    public void getImages(HttpServletRequest request, HttpServletResponse response) throws Exception {
         LOG.error("getImages");
-        String url = "E:/pic/" + imageurl;
+        String url = request.getParameter("imgurl");
         File file = null;
         FileInputStream fis = null;
         try {
@@ -341,28 +346,77 @@ public class WXIndexController {
     @ResponseBody
     @RequestMapping(value = "/getRecentHelp", method = RequestMethod.POST)
     public Map<String, Object> getRecentHelp(String latitude, String longitude) {
-        Map<String,Object> resultss=new HashMap<>();
+        Map<String, Object> resultss = new HashMap<>();
         List<Map<String, Object>> results = new ArrayList<>();
         List<Map<String, Object>> gets = wXIndexService.getAllInfo(new HashMap<>());
         for (Map<String, Object> stringObjectMap : gets) {
-            Map<String, Object> result =  new HashMap<>();
-            Map<String, Object> resultChild =  new HashMap<>();
-            result.put("id",stringObjectMap.get("id"));
-            result.put("latitude",stringObjectMap.get("latitude"));
-            result.put("longitude",stringObjectMap.get("longitude"));
-            result.put("iconPath","");
-            resultChild.put("content",stringObjectMap.get("description").toString());//stringObjectMap.get("description").toString().substring(0,2)+"..."
-            resultChild.put("bgColor","#fff");
-            resultChild.put("padding","5px");
-            resultChild.put("borderRadius","2px");
-            resultChild.put("borderWidth","1px");
-            resultChild.put("borderColor","#673bb7");
-            result.put("callout",resultChild);
+            Map<String, Object> result = new HashMap<>();
+            Map<String, Object> resultChild = new HashMap<>();
+            result.put("id", stringObjectMap.get("id"));
+            result.put("latitude", stringObjectMap.get("latitude"));
+            result.put("longitude", stringObjectMap.get("longitude"));
+            result.put("needtitle", stringObjectMap.get("title"));
+            result.put("needimages", stringObjectMap.get("images"));
+            result.put("needlocation", stringObjectMap.get("location"));
+            result.put("needdescription", stringObjectMap.get("description"));
+            result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needrecentdate", stringObjectMap.get("recentdate"));
+            result.put("iconPath", stringObjectMap.get("iconpath"));
+            result.put("width", 35);
+            result.put("height", 52.5);
+            resultChild.put("content", stringObjectMap.get("title").toString());//stringObjectMap.get("description").toString().substring(0,2)+"..."
+            resultChild.put("bgColor", "#fff");
+            resultChild.put("padding", "5px");
+            resultChild.put("borderRadius", "2px");
+            resultChild.put("borderWidth", "1px");
+            resultChild.put("borderColor", "#673bb7");
+            result.put("callout", resultChild);
             results.add(result);
         }
-        resultss.put("markers",results);
+        resultss.put("markers", results);
         return resultss;
 
+    }
+
+    //获取最近发布的信息
+    @ResponseBody
+    @RequestMapping(value = "/getRecentHelpByOpenid", method = RequestMethod.POST)
+    public JSONArray getRecentHelp(String userid) {
+        JSONArray resultarray=new JSONArray();
+        Map<String, Object> resultss = new HashMap<>();
+        List<Map<String, Object>> results = new ArrayList<>();
+        List<Map<String, Object>> gets = wXIndexService.getAllInfo(new HashMap<>());
+        for (Map<String, Object> stringObjectMap : gets) {
+            if (!stringObjectMap.get("openid").toString().equalsIgnoreCase(userid)) {
+                continue;
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", stringObjectMap.get("id"));
+            result.put("isTouchMove", false);
+            result.put("latitude", stringObjectMap.get("latitude"));
+            result.put("longitude", stringObjectMap.get("longitude"));
+            result.put("txt", stringObjectMap.get("title"));
+            result.put("needtitle", stringObjectMap.get("title"));
+            result.put("needimages", stringObjectMap.get("images"));
+            result.put("needlocation", stringObjectMap.get("location"));
+            result.put("needdescription", stringObjectMap.get("description"));
+            result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needrecentdate", stringObjectMap.get("recentdate"));
+            results.add(result);
+        }
+        resultarray.addAll(results);
+        return resultarray;
+    }
+
+
+    public Map<String, Object> getUserInfo(String oid) {
+        List<Map<String, Object>> result = wXIndexService.getAll(new HashMap<>());
+        for (Map<String, Object> stringObjectMap : result) {
+            if (stringObjectMap.get("openId").toString().equalsIgnoreCase(oid)) {
+                return stringObjectMap;
+            }
+        }
+        return new HashMap<>();
     }
 
 
