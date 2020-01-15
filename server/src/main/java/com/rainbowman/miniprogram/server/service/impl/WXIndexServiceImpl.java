@@ -36,6 +36,8 @@
 
 package com.rainbowman.miniprogram.server.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.rainbowman.miniprogram.server.annotation.Master;
 import com.rainbowman.miniprogram.server.mapper.WXIndexMapper;
 import com.rainbowman.miniprogram.server.service.WXIndexService;
@@ -73,5 +75,26 @@ public class WXIndexServiceImpl implements WXIndexService {
     @Override
     public List<Map<String, Object>> getAllInfo(Map<String, Object> paramMap) {
         return wXIndexMapper.getAllInfo(paramMap);
+    }
+
+    @Master
+    @Override
+    public PageInfo<Map<String, Object>> getAllRecord(Map<String, Object> paramMap,Integer pageNum,Integer pageSize) {
+        if(pageNum!=null&&pageSize!=null){
+            PageHelper.startPage(pageNum,pageSize);
+        }
+        PageInfo<Map<String, Object>> a=new PageInfo<>(wXIndexMapper.getAllRecord(paramMap));
+        return a;
+    }
+
+    @Master
+    @Override
+    public void deleteRecord(Map<String, Object> paramMap) {
+        wXIndexMapper.deleteRecord(paramMap);
+    }
+
+    @Override
+    public void insertComment(Map<String, Object> paramMap) {
+        wXIndexMapper.insertComment(paramMap);
     }
 }

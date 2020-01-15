@@ -42,6 +42,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPObject;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.github.pagehelper.PageInfo;
 import com.rainbowman.miniprogram.server.service.WXIndexService;
 import com.rainbowman.miniprogram.server.utils.AesUtil;
 import com.rainbowman.miniprogram.server.utils.FileUtil;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
@@ -133,6 +135,20 @@ public class WXIndexController {
             Map<String, Object> inserts = StringToMap(jsons);
             wXIndexService.insert(inserts);
         }
+    }
+
+
+    public Map<String,Object> getUserMap(List<Map<String, Object>> allUser,String uid){
+        for (Map<String, Object> stringObjectMap : allUser) {
+            for (Map.Entry<String, Object> a : stringObjectMap.entrySet()) {
+                if (a.getKey().toString().equalsIgnoreCase("openId")) {
+                    if (a.getValue().toString().equalsIgnoreCase(uid)) {
+                       return stringObjectMap;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public Map<String, Object> StringToMap(JSONObject object) {
@@ -417,6 +433,79 @@ public class WXIndexController {
             }
         }
         return new HashMap<>();
+    }
+
+
+    @RequestMapping("/getComment")
+    public @ResponseBody List<Map<String, Object>> getComment(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String pageNum=request.getParameter("pageNum");
+        String pageSize=request.getParameter("pageSize");
+        String sourceId=request.getParameter("sourceId");
+        Map<String, Object> params=new HashMap<>();
+        params.put("table","sys_comment");
+        params.put("paramone","markerid");
+        params.put("valueone",sourceId);
+        params.put("orderby","inserttime");
+        List<Map<String, Object>> allUser = wXIndexService.getAll(new HashMap<>());
+        PageInfo<Map<String, Object>> a=wXIndexService.getAllRecord(params,Integer.parseInt(pageNum),Integer.parseInt(pageSize));
+        Map<String,Object> result=new HashMap<>();
+        List<Map<String,Object>> results=new ArrayList<>();
+        for (Map<String, Object> stringObjectMap : a.getList()) {
+            result=new HashMap<>();
+            result.putAll(stringObjectMap);
+            result.put("userName",getUserMap(allUser,stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("userPhoto",getUserMap(allUser,stringObjectMap.get("openid").toString()).get("avatarUrl"));
+            result.put("replyUserName",stringObjectMap.get("replyopenid")==null||stringObjectMap.get("replyopenid").toString().equalsIgnoreCase("")?"":getUserMap(allUser,stringObjectMap.get("replyopenid").toString()).get("nickName"));
+            results.add(result);
+        }
+        System.out.println(results.size());
+        return results;
+    }
+
+
+    @RequestMapping("/insertComment")
+    public @ResponseBody Map<String, Object> insertComment(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+        String userId=request.getParameter("userId");
+        String comment=request.getParameter("comment");
+        String sourceId=request.getParameter("sourceId");
+        String replyCommentId=request.getParameter("replyCommentId");
+        String replyopenid=request.getParameter("replyopenid");
+        Map<String, Object> params=new HashMap<>();
+        params.put("parentid",replyCommentId);
+        params.put("markerid",sourceId);
+        params.put("openid",userId);
+        params.put("comment",comment);
+        params.put("inserttime",new Date());
+        params.put("replyopenid",replyopenid);
+        wXIndexService.insertComment(params);
+        result.put("success","success");
+        } catch (Exception e){
+            LOG.error("插入失败",e);
+            result.put("error","error");
+        }
+        return result;
+    }
+
+
+
+    @RequestMapping("/deleteComment")
+    public @ResponseBody Map<String, Object> deleteComment(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String commentId=request.getParameter("commentId");
+            Map<String, Object> params=new HashMap<>();
+            params.put("table","sys_comment");
+            params.put("paramone","id");
+            params.put("valueone",commentId);
+            wXIndexService.deleteRecord(params);
+            result.put("success","success");
+        } catch (Exception e){
+            LOG.error("插入失败",e);
+            result.put("error","error");
+        }
+        return result;
     }
 
 

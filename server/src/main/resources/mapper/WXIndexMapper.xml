@@ -34,6 +34,51 @@
 			)
     </insert>
 
+    <insert id="insertComment" parameterType="Map">
+        insert into sys_comment
+        (
+        parentid,
+        markerid,
+        openid,
+        comment,
+        inserttime,
+        replyopenid
+        )
+        VALUES
+           (
+		        #{parentid},
+				#{markerid},
+			    #{openid},
+			    #{comment},
+			    #{inserttime},
+			    #{replyopenid}
+			)
+    </insert>
+
+    <delete id="deleteRecord" parameterType="Map">
+          DELETE FROM ${table} WHERE 1=1
+        <if test="paramone != null and paramone !='' ">
+            and ${paramone} = #{valueone}
+        </if>
+        <if test="paramtwo != null and paramtwo !='' ">
+            and ${paramtwo} = #{valuetwo}
+        </if>
+    </delete>
+
+    <select id="getAllRecord" parameterType="Map" resultType="Map">
+        SELECT * from ${table} where 1=1
+        <if test="paramone != null and paramone !='' ">
+            and ${paramone} = #{valueone}
+        </if>
+        <if test="paramtwo != null and paramtwo !='' ">
+            and ${paramtwo} = #{valuetwo}
+        </if>
+        <if test="orderby != null and orderby !='' ">
+           order by ${orderby}
+        </if>
+    </select>
+
+
     <select id="getAllInfo" parameterType="Map" resultType="Map">
         SELECT * from sys_information
     </select>
@@ -64,10 +109,6 @@
 				#{recentdate}
 			)
     </insert>
-
-
-
-
 
 
 </mapper>

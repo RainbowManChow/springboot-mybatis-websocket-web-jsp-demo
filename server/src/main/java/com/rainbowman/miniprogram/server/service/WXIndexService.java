@@ -36,6 +36,8 @@
 
 package com.rainbowman.miniprogram.server.service;
 
+import com.github.pagehelper.PageInfo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -44,4 +46,7 @@ public interface WXIndexService {
     public void insert(Map<String,Object> paramMap);
     public void insertInfo(Map<String, Object> paramMap);
     public List<Map<String, Object>> getAllInfo(Map<String, Object> paramMap);
+    public PageInfo<Map<String, Object>> getAllRecord(Map<String, Object> paramMap, Integer pageNum, Integer pageSize);
+    public void deleteRecord(Map<String, Object> paramMap);
+    public void insertComment(Map<String, Object> paramMap);
 }
