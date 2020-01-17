@@ -55,6 +55,18 @@
 			)
     </insert>
 
+    <update id="updateRecord" parameterType="Map">
+    UPDATE ${table} SET
+        <if test="list != null">
+        <foreach item="item" index="index" collection="list" separator=",">
+            ${item.param} = #{item.paramvalue}
+        </foreach>
+        </if>
+        <if test="whereparam != null and whereparam !='' ">
+            where ${whereparam}=#{wherevalue}
+        </if>
+    </update>
+
     <delete id="deleteRecord" parameterType="Map">
           DELETE FROM ${table} WHERE 1=1
         <if test="paramone != null and paramone !='' ">
@@ -73,6 +85,9 @@
         <if test="paramtwo != null and paramtwo !='' ">
             and ${paramtwo} = #{valuetwo}
         </if>
+        <if test="delflag != null and delflag !='' ">
+            and delflag = #{delflag}
+        </if>
         <if test="orderby != null and orderby !='' ">
            order by ${orderby}
         </if>
@@ -80,7 +95,7 @@
 
 
     <select id="getAllInfo" parameterType="Map" resultType="Map">
-        SELECT * from sys_information
+        SELECT * from sys_information where delflag = 0
     </select>
 
     <insert id="insertInfo" parameterType="Map">

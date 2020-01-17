@@ -47,4 +47,5 @@ public interface WXIndexMapper {
     List<Map<String, Object>> getAllRecord(Map<String, Object> paramMap);
     void deleteRecord(Map<String, Object> paramMap);
     void insertComment(Map<String, Object> paramMap);
+    void updateRecord(Map<String, Object> paramMap);
 }

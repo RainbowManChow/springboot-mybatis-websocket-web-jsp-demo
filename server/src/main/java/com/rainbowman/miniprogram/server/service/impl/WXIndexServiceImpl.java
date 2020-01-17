@@ -97,4 +97,9 @@ public class WXIndexServiceImpl implements WXIndexService {
     public void insertComment(Map<String, Object> paramMap) {
         wXIndexMapper.insertComment(paramMap);
     }
+
+    @Override
+    public void updateRecord(Map<String, Object> paramMap) {
+        wXIndexMapper.updateRecord(paramMap);
+    }
 }

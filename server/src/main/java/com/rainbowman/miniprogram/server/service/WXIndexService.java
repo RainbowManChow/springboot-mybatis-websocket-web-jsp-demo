@@ -49,4 +49,5 @@ public interface WXIndexService {
     public PageInfo<Map<String, Object>> getAllRecord(Map<String, Object> paramMap, Integer pageNum, Integer pageSize);
     public void deleteRecord(Map<String, Object> paramMap);
     public void insertComment(Map<String, Object> paramMap);
+    public void updateRecord(Map<String, Object> paramMap);
 }
