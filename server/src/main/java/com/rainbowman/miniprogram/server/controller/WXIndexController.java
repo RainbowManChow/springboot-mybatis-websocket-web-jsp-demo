@@ -76,6 +76,7 @@ public class WXIndexController {
     //小程序的 app secret (在微信小程序管理后台获取)
     public static final String wxspSecret = "b4cbdf24d4af736fe5b12f79fdca144c";
     public static final String iconpath = "/images/point.png";
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm") ;
 
     @Autowired
     private WXIndexService wXIndexService;
@@ -376,7 +377,7 @@ public class WXIndexController {
             result.put("needlocation", stringObjectMap.get("location"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
-            result.put("needrecentdate", stringObjectMap.get("recentdate"));
+            result.put("needrecentdate",dateFormat.format(stringObjectMap.get("recentdate")));
             result.put("iconPath", stringObjectMap.get("iconpath"));
             result.put("width", 35);
             result.put("height", 52.5);
@@ -419,7 +420,7 @@ public class WXIndexController {
             result.put("isTouchMove", false);
             result.put("txt", stringObjectMap.get("comment"));
             result.put("markerid", stringObjectMap.get("markerid"));
-            result.put("needrecentdate", stringObjectMap.get("inserttime"));
+            result.put("needrecentdate", dateFormat.format(stringObjectMap.get("inserttime")));
             results.add(result);
         }
         resultarray.addAll(results);
@@ -441,7 +442,7 @@ public class WXIndexController {
         if (!StringUtils.isEmpty(delflag)) {
             param.put("delflag", delflag);
         }
-        if (!StringUtils.isEmpty(orderby)) param.put("orderby", orderby);
+        if (!StringUtils.isEmpty(orderby)) param.put("orderby", orderby+" DESC ");
         return param;
     }
 
@@ -464,7 +465,7 @@ public class WXIndexController {
             result.put("needlocation", stringObjectMap.get("location"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
-            result.put("needrecentdate", stringObjectMap.get("recentdate"));
+            result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recentdate")));
             results.add(result);
         }
         resultarray.addAll(results);
@@ -499,6 +500,7 @@ public class WXIndexController {
             result.put("userName", getUserMap(allUser, stringObjectMap.get("openid").toString()).get("nickName"));
             result.put("userPhoto", getUserMap(allUser, stringObjectMap.get("openid").toString()).get("avatarUrl"));
             result.put("replyUserName", stringObjectMap.get("replyopenid") == null || stringObjectMap.get("replyopenid").toString().equalsIgnoreCase("") ? "" : getUserMap(allUser, stringObjectMap.get("replyopenid").toString()).get("nickName"));
+            result.put("inserttime",dateFormat.format(stringObjectMap.get("inserttime")));
             results.add(result);
         }
         System.out.println(results.size());
