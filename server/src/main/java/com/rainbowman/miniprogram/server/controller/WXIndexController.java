@@ -43,6 +43,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPObject;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.github.pagehelper.PageInfo;
+import com.rainbowman.miniprogram.server.config.WebSocketServer;
 import com.rainbowman.miniprogram.server.service.WXIndexService;
 import com.rainbowman.miniprogram.server.utils.AesUtil;
 import com.rainbowman.miniprogram.server.utils.FileUtil;
@@ -597,6 +598,20 @@ public class WXIndexController {
         } catch (Exception e) {
             LOG.error("插入失败", e);
             result.put("error", "error");
+        }
+        return result;
+    }
+
+    @RequestMapping("/testpush")
+    public @ResponseBody String testPush(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String result = "go";
+        try {
+            for (String s : WebSocketServer.webSocketMap.keySet()) {
+                System.out.println("给"+s+"发送消息成功");
+                WebSocketServer.sendInfo("你们都是傻逼",s);
+            }
+        } catch (Exception e) {
+            LOG.error("插入失败", e);
         }
         return result;
     }
