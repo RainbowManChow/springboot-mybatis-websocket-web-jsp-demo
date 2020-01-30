@@ -428,7 +428,7 @@ public class WXIndexController {
         return resultarray;
     }
 
-    public Map<String, Object> getCurrentParam(String table, String paramone, Object valueone, String paramtwo, Object valuewtwo, String delflag, String orderby) throws Exception {
+    public static Map<String, Object> getCurrentParam(String table, String paramone, Object valueone, String paramtwo, Object valuewtwo, String delflag, String orderby) throws Exception {
         Map<String, Object> param = new HashMap<>();
         if (StringUtils.isEmpty(table)) throw new RuntimeException("缺少table");
         param.put("table",table);
@@ -457,6 +457,7 @@ public class WXIndexController {
             }
             Map<String, Object> result = new HashMap<>();
             result.put("id", stringObjectMap.get("id"));
+            result.put("helpopenid", stringObjectMap.get("openid"));
             result.put("isTouchMove", false);
             result.put("latitude", stringObjectMap.get("latitude"));
             result.put("longitude", stringObjectMap.get("longitude"));
@@ -514,19 +515,31 @@ public class WXIndexController {
     Map<String, Object> insertComment(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {
+            Date date=new Date();
             String userId = request.getParameter("userId");
             String comment = request.getParameter("comment");
             String sourceId = request.getParameter("sourceId");
             String replyCommentId = request.getParameter("replyCommentId");
             String replyopenid = request.getParameter("replyopenid");
+            String helpopenid=request.getParameter("helpopenid");
             Map<String, Object> params = new HashMap<>();
             params.put("parentid", replyCommentId);
             params.put("markerid", sourceId);
             params.put("openid", userId);
             params.put("comment", comment);
-            params.put("inserttime", new Date());
+            params.put("inserttime", date);
             params.put("replyopenid", replyopenid);
             wXIndexService.insertComment(params);
+            String info="";
+            info="您的贴子有人回复啦~，回复内容："+comment;
+            insertMessage(helpopenid,"您的帖子有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
+            sendMessage(helpopenid);
+            if(!StringUtils.isEmpty(replyopenid)){
+                info="您的留言有人回复啦~，回复内容："+comment;
+                insertMessage(replyopenid,"您的留言有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
+                sendMessage(replyopenid);
+            }
+
             result.put("success", "success");
         } catch (Exception e) {
             LOG.error("插入失败", e);
@@ -602,18 +615,99 @@ public class WXIndexController {
         return result;
     }
 
+
+    public void insertMessage(String toUserid,String title,String type,String helpid,String info,String status,Date recenttime,String delflag) throws  Exception{
+        Map<String, Object> params = new HashMap<>();
+        Map<String, Object> param = new HashMap<>();
+        List<Map<String, Object>> paramss = new ArrayList<>();
+        params.put("table", "sys_message");
+        param.put("param", "toUserid");
+        param.put("paramvalue", toUserid);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "title");
+        param.put("paramvalue", title);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "type");
+        param.put("paramvalue", type);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "helpid");
+        param.put("paramvalue", helpid);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "info");
+        param.put("paramvalue", info);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "status");
+        param.put("paramvalue", status);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "recenttime");
+        param.put("paramvalue", recenttime);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "delflag");
+        param.put("paramvalue", delflag);
+        paramss.add(param);
+        params.put("list", paramss);
+        wXIndexService.insertRecord(params);
+
+    }
+
+
+    public  void sendMessage(String userId) throws  Exception{
+        JSONArray resultarray = new JSONArray();
+        List<Map<String, Object>> results = new ArrayList<>();
+        List<Map<String, Object>> gets = wXIndexService.getAllRecord(getCurrentParam("sys_message", "toUserid", userId, null, null,"0", "recenttime"),null,null).getList();
+        for (Map<String, Object> stringObjectMap : gets) {
+            Map<String, Object> result = new HashMap<>();
+            result.putAll(stringObjectMap);
+            result.put("isTouchMove", false);
+            result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recenttime")));
+            results.add(result);
+        }
+        resultarray.addAll(results);
+        WebSocketServer.sendInfo(resultarray.toString(),userId);
+    }
+
+
+
     @RequestMapping("/testpush")
     public @ResponseBody String testPush(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String result = "go";
+        String resultss = "go";
         try {
-            for (String s : WebSocketServer.webSocketMap.keySet()) {
-                System.out.println("给"+s+"发送消息成功");
-                WebSocketServer.sendInfo("你们都是傻逼",s);
+            JSONArray resultarray = new JSONArray();
+            List<Map<String, Object>> results = new ArrayList<>();
+            List<Map<String, Object>> gets = wXIndexService.getAllRecord(getCurrentParam("sys_message", "toUserid", "orTgI0XiEOEVzp0PhpmCKIFeWjUk", null, null,"0", "recenttime"),null,null).getList();
+            for (Map<String, Object> stringObjectMap : gets) {
+                Map<String, Object> result = new HashMap<>();
+                result.putAll(stringObjectMap);
+                result.put("isTouchMove", false);
+                result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recenttime")));
+                results.add(result);
             }
+            resultarray.add(results.get(0));
+            WebSocketServer.sendInfo(resultarray.toString(),"orTgI0XiEOEVzp0PhpmCKIFeWjUk");
+
         } catch (Exception e) {
             LOG.error("插入失败", e);
         }
-        return result;
+        return resultss;
+    }
+
+    @RequestMapping("/getInitMsg")
+    public @ResponseBody String getInitMsg(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String resultss = "success";
+        String userId = request.getParameter("userId");
+        try {
+          sendMessage(userId);
+        } catch (Exception e) {
+            LOG.error("失败", e);
+        }
+        return resultss;
     }
 
 

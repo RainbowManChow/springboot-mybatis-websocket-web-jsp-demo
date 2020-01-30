@@ -50,4 +50,5 @@ public interface WXIndexService {
     public void deleteRecord(Map<String, Object> paramMap);
     public void insertComment(Map<String, Object> paramMap);
     public void updateRecord(Map<String, Object> paramMap);
+    public void insertRecord(Map<String, Object> paramMap);
 }

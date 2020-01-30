@@ -55,6 +55,22 @@
 			)
     </insert>
 
+    <update id="insertRecord" parameterType="Map">
+        INSERT INTO ${table}
+        <if test="list != null">
+            <foreach item="item" index="index" collection="list" separator="," open="(" close=")">
+                ${item.param}
+            </foreach>
+        </if>
+        VALUES
+        <if test="list != null">
+            <foreach item="item" index="index" collection="list" separator="," open="(" close=")">
+                #{item.paramvalue}
+            </foreach>
+        </if>
+    </update>
+
+
     <update id="updateRecord" parameterType="Map">
     UPDATE ${table} SET
         <if test="list != null">

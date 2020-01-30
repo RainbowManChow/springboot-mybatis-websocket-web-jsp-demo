@@ -36,16 +36,24 @@
 package com.rainbowman.miniprogram.server.config;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.rainbowman.miniprogram.server.controller.WXIndexController;
+import com.rainbowman.miniprogram.server.service.WXIndexService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -82,14 +90,12 @@ public class WebSocketServer {
             addOnlineCount();
             //在线数加1
         }
-
         log.info("用户连接:"+userId+",当前在线人数为:" + getOnlineCount());
+   /*   try {
 
-        try {
-            sendMessage("连接成功");
-        } catch (IOException e) {
-            log.error("用户:"+userId+",网络异常!!!!!!");
-        }
+        } catch (Exception e) {
+            log.error("用户:"+userId+",异常!!!!!!");
+        }*/
     }
 
     /**
