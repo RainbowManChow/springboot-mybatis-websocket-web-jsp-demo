@@ -376,6 +376,7 @@ public class WXIndexController {
             result.put("needtitle", stringObjectMap.get("title"));
             result.put("needimages", stringObjectMap.get("images"));
             result.put("needlocation", stringObjectMap.get("location"));
+            result.put("helpopenid", stringObjectMap.get("openid"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
             result.put("needrecentdate",dateFormat.format(stringObjectMap.get("recentdate")));
@@ -532,11 +533,11 @@ public class WXIndexController {
             wXIndexService.insertComment(params);
             String info="";
             info="您的贴子有人回复啦~，回复内容："+comment;
-            insertMessage(helpopenid,"您的帖子有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
+            insertMessage(helpopenid,userId,"您的帖子有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
             sendMessage(helpopenid);
             if(!StringUtils.isEmpty(replyopenid)){
                 info="您的留言有人回复啦~，回复内容："+comment;
-                insertMessage(replyopenid,"您的留言有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
+                insertMessage(replyopenid,userId,"您的留言有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
                 sendMessage(replyopenid);
             }
 
@@ -616,13 +617,17 @@ public class WXIndexController {
     }
 
 
-    public void insertMessage(String toUserid,String title,String type,String helpid,String info,String status,Date recenttime,String delflag) throws  Exception{
+    public void insertMessage(String toUserid,String userId,String title,String type,String helpid,String info,String status,Date recenttime,String delflag) throws  Exception{
         Map<String, Object> params = new HashMap<>();
         Map<String, Object> param = new HashMap<>();
         List<Map<String, Object>> paramss = new ArrayList<>();
         params.put("table", "sys_message");
         param.put("param", "toUserid");
         param.put("paramvalue", toUserid);
+        paramss.add(param);
+        param = new HashMap<>();
+        param.put("param", "userId");
+        param.put("paramvalue", userId);
         paramss.add(param);
         param = new HashMap<>();
         param.put("param", "title");
@@ -710,6 +715,35 @@ public class WXIndexController {
         return resultss;
     }
 
+    //updateMsgStatus
+    @RequestMapping("/updateMsgStatus")
+    public @ResponseBody String updateMsgStatus(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String resultss = "success";
+        String id = request.getParameter("id");
+        String delflag = request.getParameter("delflag");
+        try {
+            Map<String, Object> params = new HashMap<>();
+            Map<String, Object> param = new HashMap<>();
+            List<Map<String, Object>> paramss = new ArrayList<>();
+            params.put("table", "sys_message");
+            if(StringUtils.isEmpty(delflag)){
+                param.put("param", "status");
+                param.put("paramvalue", 1);
+            }else{
+                param.put("param", "delflag");
+                param.put("paramvalue", 1);
+            }
+            paramss.add(param);
+            params.put("whereparam", "id");
+            params.put("wherevalue", id);
+            params.put("list", paramss);
+            wXIndexService.updateRecord(params);
+        } catch (Exception e) {
+            LOG.error("失败", e);
+            resultss="error";
+        }
+        return resultss;
+    }
 
 }
 
