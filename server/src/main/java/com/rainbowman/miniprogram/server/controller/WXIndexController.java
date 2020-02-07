@@ -117,20 +117,41 @@ public class WXIndexController {
         return data;
     }
 
-    public void insertUser(String userInfo, String uid) {
+    public void insertUser(String userInfo, String uid) throws Exception{
         boolean flag = false;
+        boolean deleteflag=false;
+        JSONObject jsons = JSON.parseObject(userInfo);
         List<Map<String, Object>> allUser = wXIndexService.getAll(new HashMap<>());
         for (Map<String, Object> stringObjectMap : allUser) {
             for (Map.Entry<String, Object> a : stringObjectMap.entrySet()) {
                 if (a.getKey().toString().equalsIgnoreCase("openId")) {
                     if (a.getValue().toString().equalsIgnoreCase(uid)) {
                         flag = true;
+                    }else if(a.getValue()==null||a.getValue().toString().trim().equals("")){
+                        deleteflag=true;
+                    }
+                    else{
+                        break;
+                    }
+                }
+                if (a.getKey().toString().equalsIgnoreCase("nickName")) {
+                    if (!a.getValue().toString().equalsIgnoreCase(jsons.getString("nickName"))) {
+                        deleteflag=true;
+                        flag = false;
+                        break;
+                    }
+                }
+                if (a.getKey().toString().equalsIgnoreCase("avatarUrl")) {
+                    if (!a.getValue().toString().equalsIgnoreCase(jsons.getString("avatarUrl"))) {
+                        deleteflag=true;
+                        flag = false;
+                        break;
                     }
                 }
             }
         }
         if (!flag) {
-            JSONObject jsons = JSON.parseObject(userInfo);
+            if(deleteflag) wXIndexService.deleteRecord(getCurrentParam("sys_user","openId",uid,null,null,null,null));
             jsons.put("openId", uid);
             jsons.put("unionId", "");
             jsons.put("recentdate", new Date());
@@ -451,11 +472,8 @@ public class WXIndexController {
     public JSONArray getRecentHelpByOpenid(String userid) throws Exception {
         JSONArray resultarray = new JSONArray();
         List<Map<String, Object>> results = new ArrayList<>();
-        List<Map<String, Object>> gets = wXIndexService.getAllInfo(new HashMap<>());
+        List<Map<String, Object>> gets = wXIndexService.getAllRecord(getCurrentParam("sys_information", "openid", userid, null, null,"0","recentdate"),null,null).getList();;
         for (Map<String, Object> stringObjectMap : gets) {
-            if (!stringObjectMap.get("openid").toString().equalsIgnoreCase(userid)) {
-                continue;
-            }
             Map<String, Object> result = new HashMap<>();
             result.put("id", stringObjectMap.get("id"));
             result.put("helpopenid", stringObjectMap.get("openid"));
@@ -479,7 +497,7 @@ public class WXIndexController {
     public Map<String, Object> getUserInfo(String oid) {
         List<Map<String, Object>> result = wXIndexService.getAll(new HashMap<>());
         for (Map<String, Object> stringObjectMap : result) {
-            if (stringObjectMap.get("openId").toString().equalsIgnoreCase(oid)) {
+            if (stringObjectMap.get("openId")!=null&&stringObjectMap.get("openId").toString().equalsIgnoreCase(oid)) {
                 return stringObjectMap;
             }
         }
@@ -532,11 +550,11 @@ public class WXIndexController {
             params.put("replyopenid", replyopenid);
             wXIndexService.insertComment(params);
             String info="";
-            info="您的贴子有人回复啦~，回复内容："+comment;
+            info=comment;
             insertMessage(helpopenid,userId,"您的帖子有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
             sendMessage(helpopenid);
             if(!StringUtils.isEmpty(replyopenid)){
-                info="您的留言有人回复啦~，回复内容："+comment;
+                info=comment;
                 insertMessage(replyopenid,userId,"您的留言有人回复啦~",0+"",sourceId,info,0+"",date,0+"");
                 sendMessage(replyopenid);
             }
@@ -663,19 +681,58 @@ public class WXIndexController {
     }
 
 
+    public Map<String, Object> getHelpById(String id) throws  Exception{
+        List<Map<String, Object>> gets = wXIndexService.getAllRecord(getCurrentParam("sys_information", "id", id, null, null,"0",null),null,null).getList();
+        return gets.get(0);
+    }
+
+
+
+
     public  void sendMessage(String userId) throws  Exception{
+        Map<String, Object> result = null;
+        List<Map<String, Object>> allUser = wXIndexService.getAll(new HashMap<>());
         JSONArray resultarray = new JSONArray();
         List<Map<String, Object>> results = new ArrayList<>();
         List<Map<String, Object>> gets = wXIndexService.getAllRecord(getCurrentParam("sys_message", "toUserid", userId, null, null,"0", "recenttime"),null,null).getList();
         for (Map<String, Object> stringObjectMap : gets) {
-            Map<String, Object> result = new HashMap<>();
+            result = new HashMap<>();
             result.putAll(stringObjectMap);
             result.put("isTouchMove", false);
             result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recenttime")));
+            result.put("replaytitle", getHelpById(stringObjectMap.get("helpid").toString()).get("title"));
+            result.put("userName", getUserMap(allUser, stringObjectMap.get("userId").toString()).get("nickName"));
+            result.put("userPhoto", getUserMap(allUser, stringObjectMap.get("userId").toString()).get("avatarUrl"));
             results.add(result);
         }
         resultarray.addAll(results);
         WebSocketServer.sendInfo(resultarray.toString(),userId);
+    }
+
+    @RequestMapping("/getHelpById")
+    public @ResponseBody List<Map<String,Object>> getHelpById(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        List<Map<String,Object>> results=new ArrayList<>();
+        Map<String,Object> result=new HashMap<>();
+        String helpid = request.getParameter("helpid");
+        try {
+            Map<String,Object> stringObjectMap= getHelpById(helpid);
+            result.put("id", stringObjectMap.get("id"));
+            result.put("helpopenid", stringObjectMap.get("openid"));
+            result.put("isTouchMove", false);
+            result.put("latitude", stringObjectMap.get("latitude"));
+            result.put("longitude", stringObjectMap.get("longitude"));
+            result.put("txt", stringObjectMap.get("title"));
+            result.put("needtitle", stringObjectMap.get("title"));
+            result.put("needimages", stringObjectMap.get("images"));
+            result.put("needlocation", stringObjectMap.get("location"));
+            result.put("needdescription", stringObjectMap.get("description"));
+            result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recentdate")));
+            results.add(result);
+        } catch (Exception e) {
+            LOG.error("失败", e);
+        }
+        return results;
     }
 
 

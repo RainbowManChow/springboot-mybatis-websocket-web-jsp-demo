@@ -40,7 +40,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 /**
  * 开启WebSocket支持
- * @author zhengkai.blog.csdn.net
+ * @author a man is so handsome
  */
 @Configuration
 public class WebSocketConfig {
