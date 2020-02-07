@@ -1,3 +1,4 @@
+#spring的配置，jsp前后缀配置，数据源配置本系统采用读写分离所以有几个数据源来引用
 spring:
   mvc:
     view:
@@ -19,13 +20,14 @@ spring:
       username: pig
       password: 123456
       driver-class-name: com.mysql.jdbc.Driver
+#服务端口配置
 server:
-  port: 9999
+  port: 8888
 mybatis:
   type:
     alias:
       package: com.rainbowman.miniprogram.server.bean
-#log日志路径，springboot 默认 sl4j+LogBack
+#log日志路径，springboot 默认 sl4j+LogBack以及日志级别配置
 logging:
   file: D:/test/wxdemo.log
   level:
