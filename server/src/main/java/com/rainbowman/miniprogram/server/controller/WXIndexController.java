@@ -106,9 +106,11 @@ public class WXIndexController {
                 throw new RuntimeException();
             }
             String uid = getWXId(code).getString("openid");
-            insertUser(userInfo, uid);
-            data.put("uid", uid);
-            data.put("respcode", "0");
+            if(!StringUtils.isEmpty(uid)){
+                insertUser(userInfo, uid);
+                data.put("uid", uid);
+                data.put("respcode", "0");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             LOG.error("出错", e);
@@ -119,39 +121,24 @@ public class WXIndexController {
 
     public void insertUser(String userInfo, String uid) throws Exception{
         boolean flag = false;
+        boolean nickflag = false;
+        boolean avaflag = false;
         boolean deleteflag=false;
         JSONObject jsons = JSON.parseObject(userInfo);
         List<Map<String, Object>> allUser = wXIndexService.getAll(new HashMap<>());
         for (Map<String, Object> stringObjectMap : allUser) {
-            for (Map.Entry<String, Object> a : stringObjectMap.entrySet()) {
-                if (a.getKey().toString().equalsIgnoreCase("openId")) {
-                    if (a.getValue().toString().equalsIgnoreCase(uid)) {
-                        flag = true;
-                    }else if(a.getValue()==null||a.getValue().toString().trim().equals("")){
-                        deleteflag=true;
-                    }
-                    else{
-                        break;
-                    }
-                }
-                if (a.getKey().toString().equalsIgnoreCase("nickName")) {
-                    if (!a.getValue().toString().equalsIgnoreCase(jsons.getString("nickName"))) {
-                        deleteflag=true;
-                        flag = false;
-                        break;
-                    }
-                }
-                if (a.getKey().toString().equalsIgnoreCase("avatarUrl")) {
-                    if (!a.getValue().toString().equalsIgnoreCase(jsons.getString("avatarUrl"))) {
-                        deleteflag=true;
-                        flag = false;
-                        break;
-                    }
-                }
+            if(stringObjectMap.get("openId")!=null&&stringObjectMap.get("openId").toString().equalsIgnoreCase(uid)){
+                flag=true;
+               if(stringObjectMap.get("nickName")!=null&&stringObjectMap.get("nickName").toString().equalsIgnoreCase(jsons.getString("nickName"))){
+                   nickflag=true;
+               }
+               if(stringObjectMap.get("avatarUrl")!=null&&stringObjectMap.get("avatarUrl").toString().equalsIgnoreCase(jsons.getString("avatarUrl"))){
+                   avaflag=true;
+               }
             }
         }
-        if (!flag) {
-            if(deleteflag) wXIndexService.deleteRecord(getCurrentParam("sys_user","openId",uid,null,null,null,null));
+        if (!flag||(flag&&nickflag&&!avaflag)||(flag&&!nickflag&&avaflag)||(flag&&!nickflag&&!avaflag)) {
+            if(flag) wXIndexService.deleteRecord(getCurrentParam("sys_user","openId",uid,null,null,null,null));
             jsons.put("openId", uid);
             jsons.put("unionId", "");
             jsons.put("recentdate", new Date());
@@ -400,17 +387,26 @@ public class WXIndexController {
             result.put("helpopenid", stringObjectMap.get("openid"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needavatarUrl", getUserInfo(stringObjectMap.get("openid").toString()).get("avatarUrl"));
             result.put("needrecentdate",dateFormat.format(stringObjectMap.get("recentdate")));
             result.put("iconPath", stringObjectMap.get("iconpath"));
             result.put("width", 35);
             result.put("height", 52.5);
-            resultChild.put("content", stringObjectMap.get("title").toString());//stringObjectMap.get("description").toString().substring(0,2)+"..."
+     /*       resultChild.put("content", stringObjectMap.get("title").toString());//stringObjectMap.get("description").toString().substring(0,2)+"..."
             resultChild.put("bgColor", "#fff");
             resultChild.put("padding", "5px");
             resultChild.put("borderRadius", "2px");
             resultChild.put("borderWidth", "1px");
             resultChild.put("borderColor", "#673bb7");
-            result.put("callout", resultChild);
+            result.put("callout", resultChild);*/
+            resultChild=new HashMap<>();
+            resultChild.put("content", stringObjectMap.get("title").toString());//stringObjectMap.get("description").toString().substring(0,2)+"..."
+            resultChild.put("bgColor", "#ffffff");
+            resultChild.put("padding", "3px");
+            resultChild.put("borderRadius", "5px");
+            resultChild.put("x", "20");
+            resultChild.put("y", "-40");
+            result.put("label", resultChild);
             results.add(result);
         }
         resultss.put("markers", results);
@@ -486,6 +482,7 @@ public class WXIndexController {
             result.put("needlocation", stringObjectMap.get("location"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needavatarUrl", getUserInfo(stringObjectMap.get("openid").toString()).get("avatarUrl"));
             result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recentdate")));
             results.add(result);
         }
@@ -727,6 +724,7 @@ public class WXIndexController {
             result.put("needlocation", stringObjectMap.get("location"));
             result.put("needdescription", stringObjectMap.get("description"));
             result.put("needusername", getUserInfo(stringObjectMap.get("openid").toString()).get("nickName"));
+            result.put("needavatarUrl", getUserInfo(stringObjectMap.get("openid").toString()).get("avatarUrl"));
             result.put("needrecentdate", dateFormat.format(stringObjectMap.get("recentdate")));
             results.add(result);
         } catch (Exception e) {
